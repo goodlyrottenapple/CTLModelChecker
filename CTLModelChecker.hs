@@ -1,4 +1,11 @@
+{- |
+Module      :  CTLModelChecker
+Description :  Simple implementation of a CTL model checker
+Copyright   :  (c) Samuel Balco, 2015
+License     :  MIT
+-}
 module CTLModelChecker where
+
 import Data.List
 import Data.Set (Set)
 import qualified Data.Set as Set
@@ -60,12 +67,10 @@ empty = S []
 
 
 post :: Graph -> Node -> States
-post (G g) a = S $ (map snd) $ filter (\x -> fst x == a) g
+post (G g) a = S $ map snd $ filter (\x -> fst x == a) g
 
 states :: Graph -> States
-states (G g) = S $ foldr (\ a res -> if a `elem` res then res else a:res) 
-    (foldr (\ a res -> if a `elem` res then res else a:res) [] (map snd g)) 
-        (map fst g)
+states (G g) = S $ foldr (\a res -> if a `elem` res then res else a:res) [] $ concat $ map (\(a,b) -> [a,b]) g
 
 sat :: Formula -> Graph -> Labeling -> States
 sat T g l = states g
