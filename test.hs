@@ -4,8 +4,6 @@ import Parser
 
 initialS = S [0]
 
-allS = S [0,1,2,3,4]
-
 graph = G [(0,1), (1,3), (1,4), (2,2), (3,2), (4,4)]
 
 labeling :: Labeling
@@ -17,8 +15,8 @@ labeling 4 = ["c"]
 labeling _ = []
 
 satF :: String -> Bool
-satF s = initialS `subseq` sat (parseF s) allS graph labeling
+satF s = initialS `subseq` sat (parseF s) graph labeling
 
 
 satFS :: String -> States
-satFS s = sat (parseF s) allS graph labeling
+satFS s = sat (parseF s) graph labeling

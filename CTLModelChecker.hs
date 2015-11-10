@@ -62,15 +62,28 @@ empty = S []
 post :: Graph -> Node -> States
 post (G g) a = S $ (map snd) $ filter (\x -> fst x == a) g
 
-sat :: Formula -> States -> Graph -> Labeling -> States
-sat T allS g l = allS
-sat (A a) (S allS) g l = trace("Formula: " ++ show (A a) ++ "\nSet: " ++ show r) $ r where r = S [s | s <- allS, a `elem` (l s)]
-sat (And x y) allS g l = trace("Formula: " ++ show (And x y) ++ "\nSet: " ++ show r) $ r where r = (sat x allS g l) `intersection` (sat y allS g l)
-sat (Not x) allS g l = trace("Formula: " ++ show (Not x) ++ "\nSet: " ++ show r) $ r where r =  allS `diff` (sat x allS g l)
-sat (ENext x) (S allS) g l = trace("Formula: " ++ show (ENext x) ++ "\nSet: " ++ show r) $ r where r = S [s | s <- allS, (post g s) `intersection` (sat x (S allS) g l) /= empty ]
-sat (ANext x) (S allS) g l = trace("Formula: " ++ show (ANext x) ++ "\nSet: " ++ show r) $ r where r = S [s | s <- allS, (post g s) `subseq` (sat x (S allS) g l) ]
-sat (EUntil x y) (S allS) g l = trace("Formula: " ++ show (EUntil x y) ++ "\nSet: " ++ show r) $ r where r = eUntil (sat y (S allS) g l) (sat x (S allS) g l) g
-sat (AUntil x y) (S allS) g l = trace("Formula: " ++ show (AUntil x y) ++ "\nSet: " ++ show r) $ r where r = aUntil (sat y (S allS) g l) (sat x (S allS) g l) g
+states :: Graph -> States
+states (G g) = S $ foldr (\ a res -> if a `elem` res then res else a:res) 
+    (foldr (\ a res -> if a `elem` res then res else a:res) [] (map snd g)) 
+        (map fst g)
+
+sat :: Formula -> Graph -> Labeling -> States
+sat T g l = states g
+sat (A a) g l = trace("Formula: " ++ show (A a) ++ "\nSet: " ++ show r) $ r where 
+    r = S [s | s <- allS, a `elem` (l s)]
+    (S allS) = states g
+sat (And x y) g l = trace("Formula: " ++ show (And x y) ++ "\nSet: " ++ show r) $ r where r = (sat x g l) `intersection` (sat y g l)
+sat (Not x) g l = trace("Formula: " ++ show (Not x) ++ "\nSet: " ++ show r) $ r where 
+    r = allS `diff` (sat x g l)
+    allS = states g
+sat (ENext x) g l = trace("Formula: " ++ show (ENext x) ++ "\nSet: " ++ show r) $ r where 
+    r = S [s | s <- allS, (post g s) `intersection` (sat x g l) /= empty]
+    (S allS) = states g
+sat (ANext x) g l = trace("Formula: " ++ show (ANext x) ++ "\nSet: " ++ show r) $ r where 
+    r = S [s | s <- allS, (post g s) `subseq` (sat x g l)]
+    (S allS) = states g
+sat (EUntil x y) g l = trace("Formula: " ++ show (EUntil x y) ++ "\nSet: " ++ show r) $ r where r = eUntil (sat y g l) (sat x g l) g
+sat (AUntil x y) g l = trace("Formula: " ++ show (AUntil x y) ++ "\nSet: " ++ show r) $ r where r = aUntil (sat y g l) (sat x g l) g
 
 
 eUntil :: States -> States -> Graph -> States
